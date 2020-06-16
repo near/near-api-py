@@ -1,0 +1,9 @@
+language: python
+python:
+    - "3.7"
+
+install:
+    - pip install tox
+script:
+    - TOXENV=py$(echo $TRAVIS_PYTHON_VERSION | tr -d .) tox -v
+
