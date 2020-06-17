@@ -1,12 +1,10 @@
 import os
 from setuptools import setup, find_packages
 
-from near_api import PROJECT, VERSION
-
 
 META_DATA = dict(
-    name = PROJECT,
-    version = VERSION,
+    name = "near-api-py",
+    version = "0.1.0",
     license = "MIT",
 
     author = "NEAR Inc",
