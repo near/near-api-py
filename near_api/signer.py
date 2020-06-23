@@ -10,8 +10,9 @@ class KeyPair(object):
         self._secret_key = ed25519.SigningKey(base58.b58decode(secret_key))
         self._public_key = self._secret_key.get_verifying_key()
 
+    @property
     def public_key(self):
-        self._public_key.to_bytes()
+        return self._public_key.to_bytes()
 
     def encoded_public_key(self):
         return base58.b58encode(self._public_key.to_bytes()).decode('utf-8')
@@ -26,8 +27,17 @@ class Signer(object):
         self._account_id = account_id
         self._key_pair = key_pair
 
+    @property
+    def account_id(self):
+        return self._account_id
+
+    @property
+    def key_pair(self):
+        return self._key_pair
+
+    @property
     def public_key(self):
-        return self._key_pair.public_key()
+        return self._key_pair.public_key
 
     def sign(self, message):
         return self._key_pair.sign(message)

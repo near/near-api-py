@@ -2,7 +2,7 @@ import base58
 import json
 import itertools
 
-import near_api.transactions
+from near_api import transactions
 
 
 # Amount of gas attached by default 1e14.
@@ -25,14 +25,14 @@ class Account(object):
         self._account_id = account_id
         self._account = provider.get_account(account_id)
         self._access_key = provider.get_access_key(account_id, signer._key_pair.encoded_public_key())
+        print(account_id, self._account, self._access_key)
 
     def _sign_and_submit_tx(self, receiver_id, actions):
         self._access_key["nonce"] += 1
         block_hash = self._provider.get_status()['sync_info']['latest_block_hash']
         block_hash = base58.b58decode(block_hash.encode('utf8'))
         serialzed_tx = transactions.sign_and_serialize_transaction(
-            receiver_id, self._access_key["nonce"], actions, block_hash, self._account_id,
-            self._signer)
+            receiver_id, self._access_key["nonce"], actions, block_hash, self._signer)
         result = self._provider.send_tx_and_wait(serialzed_tx, 10)
         for outcome in itertools.chain([result['transaction_outcome']], result['receipts_outcome']):
             for log in outcome['outcome']['logs']:
@@ -53,7 +53,20 @@ class Account(object):
     def provider(self):
         return self._provider
 
+    @property
+    def access_key(self):
+        return self._access_key
+
+    @property
+    def state(self):
+        return self._account
+
+    def fetch_state(self):
+        """Fetch state for given account."""
+        self._account = self.provider.get_account(self.account_id)
+
     def send_money(self, account_id, amount):
+        """Sends funds to given account_id given amount."""
         return self._sign_and_submit_tx(account_id, [transactions.create_transfer_action(amount)])
 
     def function_call(self, contract_id, method_name, args, gas=DEFAULT_ATTACHED_GAS, amount=0):
@@ -98,4 +111,3 @@ class Account(object):
             raise ViewFunctionError(result["error"])
         result["result"] = json.loads(''.join([chr(x) for x in result["result"]]))
         return result
-

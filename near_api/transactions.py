@@ -130,11 +130,13 @@ tx_schema = dict([[Signature, { 'kind': 'struct', 'fields': [
 
 
 def sign_and_serialize_transaction(receiverId, nonce, actions, blockHash, signer):
+    assert signer.public_key != None
+    assert blockHash != None
     tx = Transaction()
     tx.signerId = signer.account_id
     tx.publicKey = PublicKey()
     tx.publicKey.keyType = 0
-    tx.publicKey.data = signer.public_key()
+    tx.publicKey.data = signer.public_key
     tx.nonce = nonce
     tx.receiverId = receiverId
     tx.actions = actions
@@ -150,6 +152,7 @@ def sign_and_serialize_transaction(receiverId, nonce, actions, blockHash, signer
     signedTx = SignedTransaction()
     signedTx.transaction = tx
     signedTx.signature = signature
+
 
     return BinarySerializer(tx_schema).serialize(signedTx)
 
