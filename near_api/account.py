@@ -84,7 +84,7 @@ class Account(object):
         return self._sign_and_submit_tx(self._account_id, [transactions.create_deploy_contract_action(contract_code)])
 
     def stake(self, public_key, amount):
-        return self._sign_and_submit_tx(self._account_id, [transactions.create_stake_action(public_key, amount)])
+        return self._sign_and_submit_tx(self._account_id, [transactions.create_staking_action(public_key, amount)])
 
     def create_and_deploy_contract(self, contract_id, public_key, contract_code, initial_balance):
         actions = [
