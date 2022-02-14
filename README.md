@@ -11,9 +11,18 @@ First, install the package in development mode:
 python setup.py develop
 ```
 
-To run tests, use nose (`pip install nose`):
+To run tests:
+
+**Linux**
 ```bash
-nosetests
+cd test
+python3 -m unittest
+```
+
+**Windows**
+```commandline
+cd test
+python -m unittest
 ```
 
 # License
