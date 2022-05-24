@@ -1,9 +1,12 @@
+from typing import Union
+
+
 class BinarySerializer:
-    def __init__(self, schema):
+    def __init__(self, schema: dict):
         self.array = bytearray()
         self.schema = schema
 
-    def serialize_num(self, value, n_bytes):
+    def serialize_num(self, value: int, n_bytes: int):
         orig_value = value
         assert value >= 0, "Can't serialize negative numbers %d" % value    # TODO: Need to replace to Exception
         for i in range(n_bytes):
@@ -11,7 +14,7 @@ class BinarySerializer:
             value //= 256
         assert value == 0, "Value %d has more than %d bytes" % (orig_value, n_bytes)    # TODO: Need to replace to Exception
 
-    def serialize_field(self, value, field_type):
+    def serialize_field(self, value: Union[str, int], field_type: Union[str, dict]):
         try:
             if type(field_type) == str:
                 if field_type[0] == 'u':

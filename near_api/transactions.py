@@ -1,5 +1,6 @@
 import hashlib
 
+import near_api
 from near_api.serializer import BinarySerializer
 
 
@@ -252,7 +253,13 @@ tx_schema = dict(
 )
 
 
-def sign_and_serialize_transaction(receiver_id, nonce, actions, block_hash, signer):
+def sign_and_serialize_transaction(
+        receiver_id: str,
+        nonce,
+        actions: list,
+        block_hash,
+        signer: 'near_api.signer.Signer'
+) -> bytes:
     assert signer.public_key is not None    # TODO: Need to replace to Exception
     assert block_hash is not None    # TODO: Need to replace to Exception
     tx = Transaction()
@@ -279,7 +286,7 @@ def sign_and_serialize_transaction(receiver_id, nonce, actions, block_hash, sign
     return BinarySerializer(tx_schema).serialize(signed_tx)
 
 
-def create_create_account_action():
+def create_create_account_action() -> 'Action':
     create_account = CreateAccount()
     action = Action()
     action.enum = 'createAccount'
@@ -287,7 +294,7 @@ def create_create_account_action():
     return action
 
 
-def create_full_access_key_action(pk):
+def create_full_access_key_action(pk) -> 'Action':
     permission = AccessKeyPermission()
     permission.enum = 'fullAccess'
     permission.fullAccess = FullAccessPermission()
@@ -306,7 +313,7 @@ def create_full_access_key_action(pk):
     return action
 
 
-def create_delete_access_key_action(pk):
+def create_delete_access_key_action(pk) -> 'Action':
     public_key = PublicKey()
     public_key.keyType = 0
     public_key.data = pk
@@ -318,7 +325,7 @@ def create_delete_access_key_action(pk):
     return action
 
 
-def create_transfer_action(amount):
+def create_transfer_action(amount: int) -> 'Action':
     transfer = Transfer()
     transfer.deposit = amount
     action = Action()
@@ -331,7 +338,7 @@ def create_transfer_action(amount):
 create_payment_action = create_transfer_action
 
 
-def create_staking_action(amount, pk):
+def create_staking_action(amount: int, pk) -> 'Action':
     stake = Stake()
     stake.stake = amount
     stake.publicKey = PublicKey()
@@ -343,7 +350,7 @@ def create_staking_action(amount, pk):
     return action
 
 
-def create_deploy_contract_action(code):
+def create_deploy_contract_action(code) -> 'Action':
     deploy_contract = DeployContract()
     deploy_contract.code = code
     action = Action()
@@ -352,7 +359,7 @@ def create_deploy_contract_action(code):
     return action
 
 
-def create_function_call_action(method_name, args, gas, deposit):
+def create_function_call_action(method_name: str, args, gas: int, deposit: int) -> 'Action':
     function_call = FunctionCall()
     function_call.methodName = method_name
     function_call.args = args
@@ -364,13 +371,24 @@ def create_function_call_action(method_name, args, gas, deposit):
     return action
 
 
-def sign_create_account_tx(creator_signer, new_account_id, nonce, block_hash):
+def sign_create_account_tx(
+        creator_signer: 'near_api.signer.Signer',
+        new_account_id: str,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_create_account_action()
     return sign_and_serialize_transaction(new_account_id, nonce, [action], block_hash, creator_signer)
 
 
-def sign_create_account_with_full_access_key_and_balance_tx(creator_key, new_account_id, new_key, balance, nonce,
-                                                            block_hash):
+def sign_create_account_with_full_access_key_and_balance_tx(
+        creator_key: 'near_api.signer.Signer',
+        new_account_id: str,
+        new_key,
+        balance: int,
+        nonce,
+        block_hash
+) -> bytes:
     create_account_action = create_create_account_action()
     full_access_key_action = create_full_access_key_action(new_key.decoded_pk())
     payment_action = create_transfer_action(balance)
@@ -379,31 +397,63 @@ def sign_create_account_with_full_access_key_and_balance_tx(creator_key, new_acc
                                           creator_key.decoded_pk(), creator_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_delete_access_key_tx(signer_key, target_account_id, key_for_deletion, nonce, block_hash):
+def sign_delete_access_key_tx(
+        signer_key: 'near_api.signer.Signer',
+        target_account_id: str,
+        key_for_deletion,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_delete_access_key_action(key_for_deletion.decoded_pk())
     return sign_and_serialize_transaction(target_account_id, nonce, [action], block_hash, signer_key.account_id,
                                           signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_payment_tx(key, to, amount, nonce, block_hash):
+def sign_payment_tx(
+        key: 'near_api.signer.Signer',
+        to: str,
+        amount: int,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_transfer_action(amount)
     return sign_and_serialize_transaction(to, nonce, [action], block_hash, key.account_id,
                                           key.decoded_pk(), key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_staking_tx(signer_key, validator_key, amount, nonce, block_hash):
+def sign_staking_tx(
+        signer_key: 'near_api.signer.Signer',
+        validator_key,
+        amount: int,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_staking_action(amount, validator_key.decoded_pk())
     return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
                                           signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_deploy_contract_tx(signer_key, code, nonce, block_hash):
+def sign_deploy_contract_tx(
+        signer_key: 'near_api.signer.Signer',
+        code,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_deploy_contract_action(code)
     return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
                                           signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_function_call_tx(signer_key, contract_id, method_name, args, gas, deposit, nonce, block_hash):
+def sign_function_call_tx(
+        signer_key: 'near_api.signer.Signer',
+        contract_id: str,
+        method_name,
+        args,
+        gas: int,
+        deposit: int,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_function_call_action(method_name, args, gas, deposit)
     return sign_and_serialize_transaction(contract_id, nonce, [action], block_hash, signer_key.account_id,
                                           signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
