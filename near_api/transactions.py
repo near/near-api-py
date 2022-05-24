@@ -1,5 +1,4 @@
 import hashlib
-from ed25519 import SigningKey
 
 from near_api.serializer import BinarySerializer
 
@@ -254,8 +253,8 @@ tx_schema = dict(
 
 
 def sign_and_serialize_transaction(receiverId, nonce, actions, blockHash, signer):
-    assert signer.public_key != None
-    assert blockHash != None
+    assert signer.public_key is not None
+    assert blockHash is not None
     tx = Transaction()
     tx.signerId = signer.account_id
     tx.publicKey = PublicKey()
