@@ -1,3 +1,5 @@
+import json
+
 import base58
 import ed25519
 
@@ -43,10 +45,10 @@ class Signer(object):
         return self._key_pair.sign(message)
 
     @classmethod
-    def from_json(self, j):
+    def from_json(cls, j):
         return Signer(j['account_id'], KeyPair(j['secret_key']))
 
     @classmethod
-    def from_json_file(self, json_file):
+    def from_json_file(cls, json_file):
         with open(json_file) as f:
             return Signer.from_json(json.loads(f.read()))

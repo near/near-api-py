@@ -23,16 +23,16 @@ class Account(object):
         self._signer = signer
         self._account_id = account_id
         self._account = provider.get_account(account_id)
-        self._access_key = provider.get_access_key(account_id, signer._key_pair.encoded_public_key())
+        self._access_key = provider.get_access_key(account_id, signer.key_pair.encoded_public_key())
         print(account_id, self._account, self._access_key)
 
     def _sign_and_submit_tx(self, receiver_id, actions):
         self._access_key["nonce"] += 1
         block_hash = self._provider.get_status()['sync_info']['latest_block_hash']
         block_hash = base58.b58decode(block_hash.encode('utf8'))
-        serialzed_tx = transactions.sign_and_serialize_transaction(
+        serialized_tx = transactions.sign_and_serialize_transaction(
             receiver_id, self._access_key["nonce"], actions, block_hash, self._signer)
-        result = self._provider.send_tx_and_wait(serialzed_tx, 10)
+        result = self._provider.send_tx_and_wait(serialized_tx, 10)
         for outcome in itertools.chain([result['transaction_outcome']], result['receipts_outcome']):
             for log in outcome['outcome']['logs']:
                 print("Log:", log)
@@ -90,8 +90,8 @@ class Account(object):
         actions = [
                       transactions.create_create_account_action(),
                       transactions.create_transfer_action(initial_balance),
-                      transactions.create_deploy_contract_action(contract_code)] + \
-                  ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
+                      transactions.create_deploy_contract_action(contract_code)
+                  ] + ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
     def create_deploy_and_init_contract(self, contract_id, public_key, contract_code, initial_balance, args,
@@ -101,8 +101,8 @@ class Account(object):
                       transactions.create_create_account_action(),
                       transactions.create_transfer_action(initial_balance),
                       transactions.create_deploy_contract_action(contract_code),
-                      transactions.create_function_call_action(init_method_name, args, gas, 0)] + \
-                  ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
+                      transactions.create_function_call_action(init_method_name, args, gas, 0)
+                  ] + ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
     def view_function(self, contract_id, method_name, args):

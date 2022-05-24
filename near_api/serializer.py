@@ -5,63 +5,63 @@ class BinarySerializer:
 
     def serialize_num(self, value, n_bytes):
         orig_value = value
-        assert value >= 0, "Can't serialize negative numbers %d" % value
+        assert value >= 0, "Can't serialize negative numbers %d" % value    # TODO: Need to replace to Exception
         for i in range(n_bytes):
             self.array.append(value & 255)
             value //= 256
-        assert value == 0, "Value %d has more than %d bytes" % (orig_value, n_bytes)
+        assert value == 0, "Value %d has more than %d bytes" % (orig_value, n_bytes)    # TODO: Need to replace to Exception
 
-    def serialize_field(self, value, fieldType):
+    def serialize_field(self, value, field_type):
         try:
-            if type(fieldType) == str:
-                if fieldType[0] == 'u':
-                    self.serialize_num(value, int(fieldType[1:]) // 8)
-                elif fieldType == 'string':
+            if type(field_type) == str:
+                if field_type[0] == 'u':
+                    self.serialize_num(value, int(field_type[1:]) // 8)
+                elif field_type == 'string':
                     b = value.encode('utf8')
                     self.serialize_num(len(b), 4)
                     self.array += b
                 else:
-                    assert False, fieldType
-            elif type(fieldType) == list:
-                assert len(fieldType) == 1
-                if type(fieldType[0]) == int:
-                    assert type(value) == bytes, "type(%s) = %s != bytes" % (value, type(value))
-                    assert len(value) == fieldType[0], "len(%s) = %s != %s" % (value, len(value), fieldType[0])
+                    assert False, field_type        # TODO: Need to replace to Exception
+            elif type(field_type) == list:
+                assert len(field_type) == 1    # TODO: Need to replace to Exception
+                if type(field_type[0]) == int:
+                    assert type(value) == bytes, "type(%s) = %s != bytes" % (value, type(value))    # TODO: Need to replace to Exception
+                    assert len(value) == field_type[0], "len(%s) = %s != %s" % (value, len(value), field_type[0])    # TODO: Need to replace to Exception
                     self.array += bytearray(value)
                 else:
                     self.serialize_num(len(value), 4)
                     for el in value:
-                        self.serialize_field(el, fieldType[0])
-            elif type(fieldType) == dict:
-                assert fieldType['kind'] == 'option'
+                        self.serialize_field(el, field_type[0])
+            elif type(field_type) == dict:
+                assert field_type['kind'] == 'option'    # TODO: Need to replace to Exception
                 if value is None:
                     self.serialize_num(0, 1)
                 else:
                     self.serialize_num(1, 1)
-                    self.serialize_field(value, fieldType['type'])
-            elif type(fieldType) == type:
-                assert type(value) == fieldType, "%s != type(%s)" % (fieldType, value)
+                    self.serialize_field(value, field_type['type'])
+            elif type(field_type) == type:
+                assert type(value) == field_type, "%s != type(%s)" % (field_type, value)    # TODO: Need to replace to Exception
                 self.serialize_struct(value)
             else:
-                assert False, type(fieldType)
-        except:
-            print("Failed to serialize %s as %s" % (value, fieldType))
+                assert False, type(field_type)    # TODO: Need to replace to Exception
+        except Exception:
+            print("Failed to serialize %s as %s" % (value, field_type))
             raise
 
     def serialize_struct(self, obj):
-        structSchema = self.schema[type(obj)]
-        if structSchema['kind'] == 'struct':
-            for fieldName, fieldType in structSchema['fields']:
+        struct_schema = self.schema[type(obj)]
+        if struct_schema['kind'] == 'struct':
+            for fieldName, fieldType in struct_schema['fields']:
                 self.serialize_field(getattr(obj, fieldName), fieldType)
-        elif structSchema['kind'] == 'enum':
-            name = getattr(obj, structSchema['field'])
-            for idx, (fieldName, fieldType) in enumerate(structSchema['values']):
+        elif struct_schema['kind'] == 'enum':
+            name = getattr(obj, struct_schema['field'])
+            for idx, (fieldName, fieldType) in enumerate(struct_schema['values']):
                 if fieldName == name:
                     self.serialize_num(idx, 1)
                     self.serialize_field(getattr(obj, fieldName), fieldType)
                     break
         else:
-            assert False, structSchema
+            assert False, struct_schema     # TODO: Need to replace to Exception
 
     def serialize(self, obj):
         self.serialize_struct(obj)
