@@ -43,7 +43,7 @@ class BinarySerializer:
                 assert type(value) == fieldType, "%s != type(%s)" % (fieldType, value)
                 self.serialize_struct(value)
             else:
-                 assert False, type(fieldType)
+                assert False, type(fieldType)
         except:
             print("Failed to serialize %s as %s" % (value, fieldType))
             raise
@@ -66,4 +66,3 @@ class BinarySerializer:
     def serialize(self, obj):
         self.serialize_struct(obj)
         return bytes(self.array)
-

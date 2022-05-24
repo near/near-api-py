@@ -4,9 +4,8 @@ import itertools
 
 from near_api import transactions
 
-
 # Amount of gas attached by default 1e14.
-DEFAULT_ATTACHED_GAS = 100000000000000
+DEFAULT_ATTACHED_GAS = 100_000_000_000_000
 
 
 class TransactionError(Exception):
@@ -71,7 +70,8 @@ class Account(object):
 
     def function_call(self, contract_id, method_name, args, gas=DEFAULT_ATTACHED_GAS, amount=0):
         args = json.dumps(args).encode('utf8')
-        return self._sign_and_submit_tx(contract_id, [transactions.create_function_call_action(method_name, args, gas, amount)])
+        return self._sign_and_submit_tx(contract_id,
+                                        [transactions.create_function_call_action(method_name, args, gas, amount)])
 
     def create_account(self, account_id, public_key, initial_balance):
         actions = [
@@ -88,9 +88,9 @@ class Account(object):
 
     def create_and_deploy_contract(self, contract_id, public_key, contract_code, initial_balance):
         actions = [
-            transactions.create_create_account_action(),
-            transactions.create_transfer_action(initial_balance),
-            transactions.create_deploy_contract_action(contract_code)] + \
+                      transactions.create_create_account_action(),
+                      transactions.create_transfer_action(initial_balance),
+                      transactions.create_deploy_contract_action(contract_code)] + \
                   ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
@@ -98,10 +98,10 @@ class Account(object):
                                         gas=DEFAULT_ATTACHED_GAS, init_method_name="new"):
         args = json.dumps(args).encode('utf8')
         actions = [
-          transactions.create_create_account_action(),
-          transactions.create_transfer_action(initial_balance),
-          transactions.create_deploy_contract_action(contract_code),
-          transactions.create_function_call_action(init_method_name, args, gas, 0)] + \
+                      transactions.create_create_account_action(),
+                      transactions.create_transfer_action(initial_balance),
+                      transactions.create_deploy_contract_action(contract_code),
+                      transactions.create_function_call_action(init_method_name, args, gas, 0)] + \
                   ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
