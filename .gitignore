@@ -3,3 +3,6 @@
 near_api_py.egg-info
 __pycache__
 .vscode
+build/
+*.py[cod]
+.DS_Store

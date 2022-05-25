@@ -1,146 +1,276 @@
 import hashlib
-from ed25519 import SigningKey
 
+import near_api
 from near_api.serializer import BinarySerializer
 
 
 class Signature:
     pass
 
+
 class SignedTransaction:
     pass
+
 
 class Transaction:
     pass
 
+
 class PublicKey:
     pass
+
 
 class AccessKey:
     pass
 
+
 class AccessKeyPermission:
     pass
+
 
 class FunctionCallPermission:
     pass
 
+
 class FullAccessPermission:
     pass
+
 
 class Action:
     pass
 
+
 class CreateAccount:
     pass
+
 
 class DeployContract:
     pass
 
+
 class FunctionCall:
     pass
+
 
 class Transfer:
     pass
 
+
 class Stake:
     pass
+
 
 class AddKey:
     pass
 
+
 class DeleteKey:
     pass
+
 
 class DeleteAccount:
     pass
 
-tx_schema = dict([[Signature, { 'kind': 'struct', 'fields': [
-            ['keyType', 'u8'],
-            ['data', [64]]
-        ] }],
-[SignedTransaction, { 'kind': 'struct', 'fields': [
-            ['transaction', Transaction],
-            ['signature', Signature]
-        ] }],
-[Transaction, { 'kind': 'struct', 'fields': [
-            ['signerId', 'string'],
-            ['publicKey', PublicKey],
-            ['nonce', 'u64'],
-            ['receiverId', 'string'],
-            ['blockHash', [32]],
-            ['actions', [Action]]
-        ] }],
-[PublicKey, { 'kind': 'struct', 'fields': [
-            ['keyType', 'u8'],
-            ['data', [32]]
-        ] }],
-[AccessKey, { 'kind': 'struct', 'fields': [
-            ['nonce', 'u64'],
-            ['permission', AccessKeyPermission],
-        ] }],
-[AccessKeyPermission, { 'kind': 'enum', 'field': 'enum', 'values': [
-            ['functionCall', FunctionCallPermission],
-            ['fullAccess', FullAccessPermission],
-        ] }],
-[FunctionCallPermission, { 'kind': 'struct', 'fields': [
-            ['allowance', { 'kind': 'option', type: 'u128' }],
-            ['receiverId', 'string'],
-            ['methodNames', ['string']],
-        ] }],
-[FullAccessPermission, { 'kind': 'struct', 'fields': [] }],
-[Action, { 'kind': 'enum', 'field': 'enum', 'values': [
-            ['createAccount', CreateAccount],
-            ['deployContract', DeployContract],
-            ['functionCall', FunctionCall],
-            ['transfer', Transfer],
-            ['stake', Stake],
-            ['addKey', AddKey],
-            ['deleteKey', DeleteKey],
-            ['deleteAccount', DeleteAccount],
-        ] }],
-[CreateAccount, { 'kind': 'struct', 'fields': [] }],
-[DeployContract, { 'kind': 'struct', 'fields': [
-            ['code', ['u8']]
-        ] }],
-[FunctionCall, { 'kind': 'struct', 'fields': [
-            ['methodName', 'string'],
-            ['args', ['u8']],
-            ['gas', 'u64'],
-            ['deposit', 'u128']
-        ] }],
-[Transfer, { 'kind': 'struct', 'fields': [
-            ['deposit', 'u128']
-        ] }],
-[Stake, { 'kind': 'struct', 'fields': [
-            ['stake', 'u128'],
-            ['publicKey', PublicKey]
-        ] }],
-[AddKey, { 'kind': 'struct', 'fields': [
-            ['publicKey', PublicKey],
-            ['accessKey', AccessKey]
-        ] }],
-[DeleteKey, { 'kind': 'struct', 'fields': [
-            ['publicKey', PublicKey]
-        ] }],
-[DeleteAccount, { 'kind': 'struct', 'fields': [
-            ['beneficiaryId', 'string']
-        ] }],
-])
+
+tx_schema = dict(
+    [
+        [
+            Signature,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['keyType', 'u8'],
+                    ['data', [64]],
+                ],
+            },
+        ],
+        [
+            SignedTransaction,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['transaction', Transaction],
+                    ['signature', Signature],
+                ],
+            },
+        ],
+        [
+            Transaction,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['signerId', 'string'],
+                    ['publicKey', PublicKey],
+                    ['nonce', 'u64'],
+                    ['receiverId', 'string'],
+                    ['blockHash', [32]],
+                    ['actions', [Action]],
+                ],
+            },
+        ],
+        [
+            PublicKey,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['keyType', 'u8'],
+                    ['data', [32]],
+                ],
+            },
+        ],
+        [
+            AccessKey,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['nonce', 'u64'],
+                    ['permission', AccessKeyPermission],
+                ],
+            },
+        ],
+        [
+            AccessKeyPermission,
+            {
+                'kind': 'enum',
+                'field': 'enum',
+                'values': [
+                    ['functionCall', FunctionCallPermission],
+                    ['fullAccess', FullAccessPermission],
+                ],
+            },
+        ],
+        [
+            FunctionCallPermission,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['allowance', {'kind': 'option', type: 'u128'}],
+                    ['receiverId', 'string'],
+                    ['methodNames', ['string']],
+                ],
+            },
+        ],
+        [
+            FullAccessPermission,
+            {
+                'kind': 'struct',
+                'fields': []
+            },
+        ],
+        [
+            Action,
+            {
+                'kind': 'enum',
+                'field': 'enum',
+                'values': [
+                    ['createAccount', CreateAccount],
+                    ['deployContract', DeployContract],
+                    ['functionCall', FunctionCall],
+                    ['transfer', Transfer],
+                    ['stake', Stake],
+                    ['addKey', AddKey],
+                    ['deleteKey', DeleteKey],
+                    ['deleteAccount', DeleteAccount],
+                ],
+            },
+        ],
+        [
+            CreateAccount,
+            {
+                'kind': 'struct',
+                'fields': []
+            },
+        ],
+        [
+            DeployContract,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['code', ['u8']],
+                ],
+            },
+        ],
+        [
+            FunctionCall,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['methodName', 'string'],
+                    ['args', ['u8']],
+                    ['gas', 'u64'],
+                    ['deposit', 'u128'],
+                ],
+            },
+        ],
+        [
+            Transfer,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['deposit', 'u128'],
+                ],
+            },
+        ],
+        [
+            Stake,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['stake', 'u128'],
+                    ['publicKey', PublicKey],
+                ],
+            },
+        ],
+        [
+            AddKey,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['publicKey', PublicKey],
+                    ['accessKey', AccessKey]
+                ],
+            },
+        ],
+        [
+            DeleteKey,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['publicKey', PublicKey],
+                ],
+            },
+        ],
+        [
+            DeleteAccount,
+            {
+                'kind': 'struct',
+                'fields': [
+                    ['beneficiaryId', 'string'],
+                ],
+            },
+        ],
+    ]
+)
 
 
-def sign_and_serialize_transaction(receiverId, nonce, actions, blockHash, signer):
-    assert signer.public_key != None
-    assert blockHash != None
+def sign_and_serialize_transaction(
+        receiver_id: str,
+        nonce,
+        actions: list,
+        block_hash,
+        signer: 'near_api.signer.Signer'
+) -> bytes:
+    assert signer.public_key is not None    # TODO: Need to replace to Exception
+    assert block_hash is not None    # TODO: Need to replace to Exception
     tx = Transaction()
     tx.signerId = signer.account_id
     tx.publicKey = PublicKey()
     tx.publicKey.keyType = 0
     tx.publicKey.data = signer.public_key
     tx.nonce = nonce
-    tx.receiverId = receiverId
+    tx.receiverId = receiver_id
     tx.actions = actions
-    tx.blockHash = blockHash
+    tx.blockHash = block_hash
 
     msg = BinarySerializer(tx_schema).serialize(tx)
     hash_ = hashlib.sha256(msg).digest()
@@ -149,54 +279,62 @@ def sign_and_serialize_transaction(receiverId, nonce, actions, blockHash, signer
     signature.keyType = 0
     signature.data = signer.sign(hash_)
 
-    signedTx = SignedTransaction()
-    signedTx.transaction = tx
-    signedTx.signature = signature
+    signed_tx = SignedTransaction()
+    signed_tx.transaction = tx
+    signed_tx.signature = signature
+
+    return BinarySerializer(tx_schema).serialize(signed_tx)
 
 
-    return BinarySerializer(tx_schema).serialize(signedTx)
-
-
-def create_create_account_action():
-    createAccount = CreateAccount()
+def create_create_account_action() -> 'Action':
+    create_account = CreateAccount()
     action = Action()
     action.enum = 'createAccount'
-    action.createAccount = createAccount
+    action.createAccount = create_account
     return action
 
 
-def create_full_access_key_action(pk):
+def create_delete_account_action(beneficiary_id: str) -> 'Action':
+    deleteAccount = DeleteAccount()
+    deleteAccount.beneficiaryId = beneficiary_id
+    action = Action()
+    action.enum = 'deleteAccount'
+    action.deleteAccount = deleteAccount
+    return action
+
+
+def create_full_access_key_action(pk) -> 'Action':
     permission = AccessKeyPermission()
     permission.enum = 'fullAccess'
     permission.fullAccess = FullAccessPermission()
-    accessKey = AccessKey()
-    accessKey.nonce = 0
-    accessKey.permission = permission
-    publicKey = PublicKey()
-    publicKey.keyType = 0
-    publicKey.data = pk
-    addKey = AddKey()
-    addKey.accessKey = accessKey
-    addKey.publicKey = publicKey
+    access_key = AccessKey()
+    access_key.nonce = 0
+    access_key.permission = permission
+    public_key = PublicKey()
+    public_key.keyType = 0
+    public_key.data = pk
+    add_key = AddKey()
+    add_key.accessKey = access_key
+    add_key.publicKey = public_key
     action = Action()
     action.enum = 'addKey'
-    action.addKey = addKey
+    action.addKey = add_key
     return action
 
 
-def create_delete_access_key_action(pk):
-    publicKey = PublicKey()
-    publicKey.keyType = 0
-    publicKey.data = pk
-    deleteKey = DeleteKey()
-    deleteKey.publicKey = publicKey
+def create_delete_access_key_action(pk) -> 'Action':
+    public_key = PublicKey()
+    public_key.keyType = 0
+    public_key.data = pk
+    delete_key = DeleteKey()
+    delete_key.publicKey = public_key
     action = Action()
     action.enum = 'deleteKey'
-    action.deleteKey = deleteKey
+    action.deleteKey = delete_key
     return action
 
 
-def create_transfer_action(amount):
+def create_transfer_action(amount: int) -> 'Action':
     transfer = Transfer()
     transfer.deposit = amount
     action = Action()
@@ -209,7 +347,7 @@ def create_transfer_action(amount):
 create_payment_action = create_transfer_action
 
 
-def create_staking_action(amount, pk):
+def create_staking_action(amount: int, pk) -> 'Action':
     stake = Stake()
     stake.stake = amount
     stake.publicKey = PublicKey()
@@ -221,60 +359,110 @@ def create_staking_action(amount, pk):
     return action
 
 
-def create_deploy_contract_action(code):
-    deployContract = DeployContract()
-    deployContract.code = code
+def create_deploy_contract_action(code) -> 'Action':
+    deploy_contract = DeployContract()
+    deploy_contract.code = code
     action = Action()
     action.enum = 'deployContract'
-    action.deployContract = deployContract
+    action.deployContract = deploy_contract
     return action
 
 
-def create_function_call_action(methodName, args, gas, deposit):
-    functionCall = FunctionCall()
-    functionCall.methodName = methodName
-    functionCall.args = args
-    functionCall.gas = gas
-    functionCall.deposit = deposit
+def create_function_call_action(method_name: str, args, gas: int, deposit: int) -> 'Action':
+    function_call = FunctionCall()
+    function_call.methodName = method_name
+    function_call.args = args
+    function_call.gas = gas
+    function_call.deposit = deposit
     action = Action()
     action.enum = 'functionCall'
-    action.functionCall = functionCall
+    action.functionCall = function_call
     return action
 
 
-def sign_create_account_tx(creator_signer, new_account_id, nonce, block_hash):
+def sign_create_account_tx(
+        creator_signer: 'near_api.signer.Signer',
+        new_account_id: str,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_create_account_action()
     return sign_and_serialize_transaction(new_account_id, nonce, [action], block_hash, creator_signer)
 
 
-def sign_create_account_with_full_access_key_and_balance_tx(creator_key, new_account_id, new_key, balance, nonce, block_hash):
+def sign_create_account_with_full_access_key_and_balance_tx(
+        creator_key: 'near_api.signer.Signer',
+        new_account_id: str,
+        new_key,
+        balance: int,
+        nonce,
+        block_hash
+) -> bytes:
     create_account_action = create_create_account_action()
     full_access_key_action = create_full_access_key_action(new_key.decoded_pk())
     payment_action = create_transfer_action(balance)
     actions = [create_account_action, full_access_key_action, payment_action]
-    return sign_and_serialize_transaction(new_account_id, nonce, actions, block_hash, creator_key.account_id, creator_key.decoded_pk(), creator_key.decoded_sk())
+    return sign_and_serialize_transaction(new_account_id, nonce, actions, block_hash, creator_key.account_id,
+                                          creator_key.decoded_pk(), creator_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_delete_access_key_tx(signer_key, target_account_id, key_for_deletion, nonce, block_hash):
+def sign_delete_access_key_tx(
+        signer_key: 'near_api.signer.Signer',
+        target_account_id: str,
+        key_for_deletion,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_delete_access_key_action(key_for_deletion.decoded_pk())
-    return sign_and_serialize_transaction(target_account_id, nonce, [action], block_hash, signer_key.account_id, signer_key.decoded_pk(), signer_key.decoded_sk())
+    return sign_and_serialize_transaction(target_account_id, nonce, [action], block_hash, signer_key.account_id,
+                                          signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_payment_tx(key, to, amount, nonce, blockHash):
+def sign_payment_tx(
+        key: 'near_api.signer.Signer',
+        to: str,
+        amount: int,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_transfer_action(amount)
-    return sign_and_serialize_transaction(to, nonce, [action], blockHash, key.account_id, key.decoded_pk(), key.decoded_sk())
+    return sign_and_serialize_transaction(to, nonce, [action], block_hash, key.account_id,
+                                          key.decoded_pk(), key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_staking_tx(signer_key, validator_key, amount, nonce, blockHash):
+def sign_staking_tx(
+        signer_key: 'near_api.signer.Signer',
+        validator_key,
+        amount: int,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_staking_action(amount, validator_key.decoded_pk())
-    return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], blockHash, signer_key.account_id, signer_key.decoded_pk(), signer_key.decoded_sk())
+    return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
+                                          signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_deploy_contract_tx(signer_key, code, nonce, blockHash):
+def sign_deploy_contract_tx(
+        signer_key: 'near_api.signer.Signer',
+        code,
+        nonce,
+        block_hash
+) -> bytes:
     action = create_deploy_contract_action(code)
-    return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], blockHash, signer_key.account_id, signer_key.decoded_pk(), signer_key.decoded_sk())
+    return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
+                                          signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused
 
 
-def sign_function_call_tx(signer_key, contract_id, methodName, args, gas, deposit, nonce, blockHash):
-    action = create_function_call_action(methodName, args, gas, deposit)
-    return sign_and_serialize_transaction(contract_id, nonce, [action], blockHash, signer_key.account_id, signer_key.decoded_pk(), signer_key.decoded_sk())
+def sign_function_call_tx(
+        signer_key: 'near_api.signer.Signer',
+        contract_id: str,
+        method_name,
+        args,
+        gas: int,
+        deposit: int,
+        nonce,
+        block_hash
+) -> bytes:
+    action = create_function_call_action(method_name, args, gas, deposit)
+    return sign_and_serialize_transaction(contract_id, nonce, [action], block_hash, signer_key.account_id,
+                                          signer_key.decoded_pk(), signer_key.decoded_sk())   # TODO: Last two params is unused

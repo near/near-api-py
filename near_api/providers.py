@@ -11,17 +11,16 @@ class JsonProviderError(Exception):
 
 
 class JsonProvider(object):
-
     def __init__(self, rpc_addr):
         if isinstance(rpc_addr, tuple):
             self._rpc_addr = "http://%s:%s" % rpc_addr
         else:
             self._rpc_addr = rpc_addr
 
-    def rpc_addr(self):
+    def rpc_addr(self) -> str:
         return self._rpc_addr
 
-    def json_rpc(self, method, params, timeout=2):
+    def json_rpc(self, method: str, params, timeout=2) -> dict:
         j = {
             'method': method,
             'params': params,
@@ -35,47 +34,71 @@ class JsonProvider(object):
             raise JsonProviderError(content["error"])
         return content["result"]
 
-    def send_tx(self, signed_tx, timeout:int=2):
-        return self.json_rpc('broadcast_tx_async', [base64.b64encode(signed_tx).decode('utf8')], timeout=timeout)
+    def send_tx(self, signed_tx: bytes, timeout: int=2) -> dict:
+        return self.json_rpc('broadcast_tx_async',
+                             [base64.b64encode(signed_tx).decode('utf8')], timeout=timeout)
 
-    def send_tx_and_wait(self, signed_tx, timeout:int=2):
-        return self.json_rpc('broadcast_tx_commit', [base64.b64encode(signed_tx).decode('utf8')], timeout=timeout)
+    def send_tx_and_wait(self, signed_tx: bytes, timeout: int) -> dict:
+        return self.json_rpc('broadcast_tx_commit',
+                             [base64.b64encode(signed_tx).decode('utf8')],
+                             timeout=timeout)
 
-    def get_status(self, timeout:int=2):
-        r = requests.get("%s/status" % self.rpc_addr(), timeout=timeout)
+    def get_status(self) -> dict:
+        r = requests.get("%s/status" % self.rpc_addr(), timeout=2)
         r.raise_for_status()
         return json.loads(r.content)
 
-    def get_validators(self, timeout:int=2):
+    def get_validators(self, timeout: int=2) -> dict:
         return self.json_rpc('validators', [None], timeout=timeout)
 
-    def query(self, query_object, timeout:int=2):
+    def query(self, query_object, timeout: int=2) -> dict:
         return self.json_rpc('query', query_object, timeout=timeout)
 
-    def get_account(self, account_id, finality=FinalityTypes.OPTIMISTIC, timeout:int=2):
-        return self.json_rpc('query', {"request_type": "view_account", "account_id": account_id, "finality": finality}, timeout=timeout)
+    def get_account(self, account_id: str, finality=FinalityTypes.OPTIMISTIC, timeout: int=2) -> dict:
+        return self.json_rpc(
+            'query', {
+                "request_type": "view_account",
+                "account_id": account_id,
+                "finality": finality
+            }, timeout=timeout)
 
-    def get_access_key_list(self, account_id, finality=FinalityTypes.OPTIMISTIC, timeout:int=2):
-        return self.json_rpc('query', {"request_type": "view_access_key_list", "account_id": account_id, "finality": finality}, timeout=timeout)
+    def get_access_key_list(self, account_id: str, finality=FinalityTypes.OPTIMISTIC, timeout: int=2) -> dict:
+        return self.json_rpc(
+            'query', {
+                "request_type": "view_access_key_list",
+                "account_id": account_id,
+                "finality": finality
+            }, timeout=timeout)
 
-    def get_access_key(self, account_id, public_key, finality=FinalityTypes.OPTIMISTIC, timeout:int=2):
-        return self.json_rpc('query', {"request_type": "view_access_key", "account_id": account_id,
-                                       "public_key": public_key, "finality": finality}, timeout=timeout)
+    def get_access_key(self, account_id: str, public_key: str, finality=FinalityTypes.OPTIMISTIC, timeout: int=2) -> dict:
+        return self.json_rpc(
+            'query', {
+                "request_type": "view_access_key",
+                "account_id": account_id,
+                "public_key": public_key,
+                "finality": finality
+            }, timeout=timeout)
 
-    def view_call(self, account_id, method_name, args, finality=FinalityTypes.OPTIMISTIC, timeout:int=2):
-        return self.json_rpc('query', {"request_type": "call_function", "account_id": account_id,
-                                       "method_name": method_name, "args_base64": base64.b64encode(args).decode('utf8'), "finality": finality}, timeout=timeout)
+    def view_call(self, account_id: str, method_name: str, args: bytes, finality=FinalityTypes.OPTIMISTIC, timeout: int=2):
+        return self.json_rpc(
+            'query', {
+                "request_type": "call_function",
+                "account_id": account_id,
+                "method_name": method_name,
+                "args_base64": base64.b64encode(args).decode('utf8'),
+                "finality": finality
+            }, timeout=timeout)
 
-    def get_block(self, block_id, timeout:int=2):
+    def get_block(self, block_id, timeout: int=2) -> dict:
         return self.json_rpc('block', [block_id], timeout=timeout)
 
-    def get_chunk(self, chunk_id, timeout:int=2):
+    def get_chunk(self, chunk_id, timeout: int=2) -> dict:
         return self.json_rpc('chunk', [chunk_id], timeout=timeout)
 
-    def get_tx(self, tx_hash, tx_recipient_id, timeout:int=2):
+    def get_tx(self, tx_hash, tx_recipient_id, timeout: int=2) -> dict:
         return self.json_rpc('tx', [tx_hash, tx_recipient_id], timeout=timeout)
 
-    def get_changes_in_block(self, block_id=None, finality:str=None, timeout:int=2):
+    def get_changes_in_block(self, block_id=None, finality:str=None, timeout: int=2) -> dict:
         '''Use either block_id or finality. Choose finality from "finality_types" class'''
         params = {}
         if block_id:
@@ -84,5 +107,29 @@ class JsonProvider(object):
             params['finality'] = finality
         return self.json_rpc('EXPERIMENTAL_changes_in_block', params, timeout=timeout)
 
-    def get_receipt(self, receipt_hash, timeout:int=2):
+    def get_validators_ordered(self, block_hash) -> dict:
+        return self.json_rpc('EXPERIMENTAL_validators_ordered', [block_hash])
+
+    def get_light_client_proof(self, outcome_type, tx_or_receipt_id,
+                               sender_or_receiver_id, light_client_head) -> dict:
+        if outcome_type == "receipt":
+            params = {
+                "type": "receipt",
+                "receipt_id": tx_or_receipt_id,
+                "receiver_id": sender_or_receiver_id,
+                "light_client_head": light_client_head
+            }
+        else:
+            params = {
+                "type": "transaction",
+                "transaction_hash": tx_or_receipt_id,
+                "sender_id": sender_or_receiver_id,
+                "light_client_head": light_client_head
+            }
+        return self.json_rpc('light_client_proof', params)
+
+    def get_next_light_client_block(self, last_block_hash) -> dict:
+        return self.json_rpc('next_light_client_block', [last_block_hash])
+
+    def get_receipt(self, receipt_hash, timeout: int=2) -> dict:
         return self.json_rpc('EXPERIMENTAL_receipt', [receipt_hash], timeout=timeout)
