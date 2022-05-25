@@ -294,6 +294,15 @@ def create_create_account_action() -> 'Action':
     return action
 
 
+def create_delete_account_action(beneficiary_id: str) -> 'Action':
+    deleteAccount = DeleteAccount()
+    deleteAccount.beneficiaryId = beneficiary_id
+    action = Action()
+    action.enum = 'deleteAccount'
+    action.deleteAccount = deleteAccount
+    return action
+
+
 def create_full_access_key_action(pk) -> 'Action':
     permission = AccessKeyPermission()
     permission.enum = 'fullAccess'
