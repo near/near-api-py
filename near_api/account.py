@@ -80,7 +80,7 @@ class Account(object):
             transactions.create_transfer_action(initial_balance)]
         return self._sign_and_submit_tx(account_id, actions)
 
-    def delete(self, beneficiary_id):
+    def delete_account(self, beneficiary_id):
         return self._sign_and_submit_tx(self._account_id, [transactions.create_delete_account_action(beneficiary_id)])
 
     def deploy_contract(self, contract_code):
