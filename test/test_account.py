@@ -19,7 +19,7 @@ class AccountTest(unittest.TestCase):
                                                        "test.near")
 
     def test_create_account(self):
-        amount = 10**24
+        amount = 10 ** 24
         account = create_account(self.master_account, amount)
         self.assertEqual(int(account.state["amount"]), amount)
 

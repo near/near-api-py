@@ -7,4 +7,3 @@ import near_api.account
 import near_api.signer
 
 log = logging.getLogger(__name__)
-
