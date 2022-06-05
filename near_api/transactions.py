@@ -255,9 +255,9 @@ tx_schema = dict(
 
 def sign_and_serialize_transaction(
         receiver_id: str,
-        nonce,
-        actions: list,
-        block_hash,
+        nonce: int,
+        actions: list[Action],
+        block_hash: bytes,
         signer: 'near_api.signer.Signer'
 ) -> bytes:
     assert signer.public_key is not None    # TODO: Need to replace to Exception
@@ -272,8 +272,8 @@ def sign_and_serialize_transaction(
     tx.actions = actions
     tx.blockHash = block_hash
 
-    msg = BinarySerializer(tx_schema).serialize(tx)
-    hash_ = hashlib.sha256(msg).digest()
+    msg: bytes = BinarySerializer(tx_schema).serialize(tx)
+    hash_: bytes = hashlib.sha256(msg).digest()
 
     signature = Signature()
     signature.keyType = 0
@@ -289,23 +289,23 @@ def sign_and_serialize_transaction(
 def create_create_account_action() -> 'Action':
     create_account = CreateAccount()
     action = Action()
-    action.enum = 'createAccount'
+    action.enum = "createAccount"
     action.createAccount = create_account
     return action
 
 
 def create_delete_account_action(beneficiary_id: str) -> 'Action':
-    deleteAccount = DeleteAccount()
-    deleteAccount.beneficiaryId = beneficiary_id
+    delete_account = DeleteAccount()
+    delete_account.beneficiaryId = beneficiary_id
     action = Action()
-    action.enum = 'deleteAccount'
-    action.deleteAccount = deleteAccount
+    action.enum = "deleteAccount"
+    action.deleteAccount = delete_account
     return action
 
 
-def create_full_access_key_action(pk) -> 'Action':
+def create_full_access_key_action(pk: str) -> 'Action':
     permission = AccessKeyPermission()
-    permission.enum = 'fullAccess'
+    permission.enum = "fullAccess"
     permission.fullAccess = FullAccessPermission()
     access_key = AccessKey()
     access_key.nonce = 0
@@ -317,19 +317,19 @@ def create_full_access_key_action(pk) -> 'Action':
     add_key.accessKey = access_key
     add_key.publicKey = public_key
     action = Action()
-    action.enum = 'addKey'
+    action.enum = "addKey"
     action.addKey = add_key
     return action
 
 
-def create_delete_access_key_action(pk) -> 'Action':
+def create_delete_access_key_action(pk: str) -> 'Action':
     public_key = PublicKey()
     public_key.keyType = 0
     public_key.data = pk
     delete_key = DeleteKey()
     delete_key.publicKey = public_key
     action = Action()
-    action.enum = 'deleteKey'
+    action.enum = "deleteKey"
     action.deleteKey = delete_key
     return action
 
@@ -338,7 +338,7 @@ def create_transfer_action(amount: int) -> 'Action':
     transfer = Transfer()
     transfer.deposit = amount
     action = Action()
-    action.enum = 'transfer'
+    action.enum = "transfer"
     action.transfer = transfer
     return action
 
@@ -347,35 +347,35 @@ def create_transfer_action(amount: int) -> 'Action':
 create_payment_action = create_transfer_action
 
 
-def create_staking_action(amount: int, pk) -> 'Action':
+def create_staking_action(amount: int, pk: str) -> 'Action':
     stake = Stake()
     stake.stake = amount
     stake.publicKey = PublicKey()
     stake.publicKey.keyType = 0
     stake.publicKey.data = pk
     action = Action()
-    action.enum = 'stake'
+    action.enum = "stake"
     action.stake = stake
     return action
 
 
-def create_deploy_contract_action(code) -> 'Action':
+def create_deploy_contract_action(code: bytes) -> 'Action':
     deploy_contract = DeployContract()
     deploy_contract.code = code
     action = Action()
-    action.enum = 'deployContract'
+    action.enum = "deployContract"
     action.deployContract = deploy_contract
     return action
 
 
-def create_function_call_action(method_name: str, args, gas: int, deposit: int) -> 'Action':
+def create_function_call_action(method_name: str, args: bytes, gas: int, deposit: int) -> 'Action':
     function_call = FunctionCall()
     function_call.methodName = method_name
     function_call.args = args
     function_call.gas = gas
     function_call.deposit = deposit
     action = Action()
-    action.enum = 'functionCall'
+    action.enum = "functionCall"
     action.functionCall = function_call
     return action
 
@@ -383,8 +383,8 @@ def create_function_call_action(method_name: str, args, gas: int, deposit: int) 
 def sign_create_account_tx(
         creator_signer: 'near_api.signer.Signer',
         new_account_id: str,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_create_account_action()
     return sign_and_serialize_transaction(new_account_id, nonce, [action], block_hash, creator_signer)
@@ -395,8 +395,8 @@ def sign_create_account_with_full_access_key_and_balance_tx(
         new_account_id: str,
         new_key,
         balance: int,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     create_account_action = create_create_account_action()
     full_access_key_action = create_full_access_key_action(new_key.decoded_pk())
@@ -410,8 +410,8 @@ def sign_delete_access_key_tx(
         signer_key: 'near_api.signer.Signer',
         target_account_id: str,
         key_for_deletion,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_delete_access_key_action(key_for_deletion.decoded_pk())
     return sign_and_serialize_transaction(target_account_id, nonce, [action], block_hash, signer_key.account_id,
@@ -422,8 +422,8 @@ def sign_payment_tx(
         key: 'near_api.signer.Signer',
         to: str,
         amount: int,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_transfer_action(amount)
     return sign_and_serialize_transaction(to, nonce, [action], block_hash, key.account_id,
@@ -434,8 +434,8 @@ def sign_staking_tx(
         signer_key: 'near_api.signer.Signer',
         validator_key,
         amount: int,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_staking_action(amount, validator_key.decoded_pk())
     return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
@@ -444,9 +444,9 @@ def sign_staking_tx(
 
 def sign_deploy_contract_tx(
         signer_key: 'near_api.signer.Signer',
-        code,
-        nonce,
-        block_hash
+        code: bytes,
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_deploy_contract_action(code)
     return sign_and_serialize_transaction(signer_key.account_id, nonce, [action], block_hash, signer_key.account_id,
@@ -456,12 +456,12 @@ def sign_deploy_contract_tx(
 def sign_function_call_tx(
         signer_key: 'near_api.signer.Signer',
         contract_id: str,
-        method_name,
-        args,
+        method_name: str,
+        args: bytes,
         gas: int,
         deposit: int,
-        nonce,
-        block_hash
+        nonce: int,
+        block_hash: bytes
 ) -> bytes:
     action = create_function_call_action(method_name, args, gas, deposit)
     return sign_and_serialize_transaction(contract_id, nonce, [action], block_hash, signer_key.account_id,

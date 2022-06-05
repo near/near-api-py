@@ -14,7 +14,7 @@ class BinarySerializer:
             value //= 256
         assert value == 0, "Value %d has more than %d bytes" % (orig_value, n_bytes)    # TODO: Need to replace to Exception
 
-    def serialize_field(self, value: Union[str, int], field_type: Union[str, dict]):
+    def serialize_field(self, value: Union[str, int], field_type: Union[str, list, dict, type]):
         try:
             if type(field_type) == str:
                 if field_type[0] == 'u':
@@ -36,7 +36,7 @@ class BinarySerializer:
                     for el in value:
                         self.serialize_field(el, field_type[0])
             elif type(field_type) == dict:
-                assert field_type['kind'] == 'option'    # TODO: Need to replace to Exception
+                assert field_type['kind'] == "option"    # TODO: Need to replace to Exception
                 if value is None:
                     self.serialize_num(0, 1)
                 else:
@@ -53,10 +53,10 @@ class BinarySerializer:
 
     def serialize_struct(self, obj):
         struct_schema = self.schema[type(obj)]
-        if struct_schema['kind'] == 'struct':
+        if struct_schema['kind'] == "struct":
             for fieldName, fieldType in struct_schema['fields']:
                 self.serialize_field(getattr(obj, fieldName), fieldType)
-        elif struct_schema['kind'] == 'enum':
+        elif struct_schema['kind'] == "enum":
             name = getattr(obj, struct_schema['field'])
             for idx, (fieldName, fieldType) in enumerate(struct_schema['values']):
                 if fieldName == name:
