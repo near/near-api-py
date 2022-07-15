@@ -79,7 +79,7 @@ class Account(object):
             self,
             contract_id: str,
             method_name: str,
-            args: bytes,
+            args: dict,
             gas: int = DEFAULT_ATTACHED_GAS,
             amount: int = 0
     ) -> dict:
@@ -139,7 +139,7 @@ class Account(object):
                   ] + ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
-    def view_function(self, contract_id: str, method_name: str, args: bytes) -> dict:
+    def view_function(self, contract_id: str, method_name: str, args: Optional[dict] = None) -> dict:
         """NEAR view method."""
         result = self._provider.view_call(contract_id, method_name, json.dumps(args).encode('utf8'))
         if "error" in result:
