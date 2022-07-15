@@ -1,5 +1,6 @@
 import itertools
 import json
+from typing import Optional
 
 import base58
 
@@ -24,13 +25,13 @@ class Account(object):
             self,
             provider: 'near_api.providers.JsonProvider',
             signer: 'near_api.signer.Signer',
-            account_id: str
+            account_id: Optional[str] = None
     ):
         self._provider = provider
         self._signer = signer
-        self._account_id = account_id
-        self._account: dict = provider.get_account(account_id)
-        self._access_key: dict = provider.get_access_key(account_id, self._signer.key_pair.encoded_public_key())
+        self._account_id = account_id or self._signer.account_id
+        self._account: dict = provider.get_account(self._account_id)
+        self._access_key: dict = provider.get_access_key(self._account_id, self._signer.key_pair.encoded_public_key())
         # print(account_id, self._account, self._access_key)
 
     def _sign_and_submit_tx(self, receiver_id: str, actions: list['transactions.Action']) -> dict:
@@ -94,7 +95,8 @@ class Account(object):
         actions = [
             transactions.create_create_account_action(),
             transactions.create_full_access_key_action(public_key),
-            transactions.create_transfer_action(initial_balance)]
+            transactions.create_transfer_action(initial_balance),
+        ]
         return self._sign_and_submit_tx(account_id, actions)
 
     def delete_account(self, beneficiary_id: str) -> dict:
