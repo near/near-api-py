@@ -1,7 +1,7 @@
 import unittest
 
 import near_api
-from config import NODE_URL
+from config import NODE_URL, TEST_ACCOUNT, TEST_KEY_PAIR
 from utils import create_account
 
 
@@ -9,12 +9,10 @@ class AccountTest(unittest.TestCase):
     def setUp(self):
         self.provider = near_api.providers.JsonProvider(NODE_URL)
         self.signer = near_api.signer.Signer(
-            "test.near",
-            near_api.signer.KeyPair(
-                "ed25519:2wyRcSwSuHtRVmkMCGjPwnzZmQLeXLzLLyED1NDMt4BjnKgQL6tF85yBx6Jr26D2dUNeC716RBoTxntVHsegogYw"
-            )
+            TEST_ACCOUNT,
+            near_api.signer.KeyPair(TEST_KEY_PAIR)
         )
-        self.master_account = near_api.account.Account(self.provider, self.signer, "test.near")
+        self.master_account = near_api.account.Account(self.provider, self.signer)
 
     def test_create_account(self):
         amount = 10 ** 24
