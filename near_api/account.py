@@ -1,5 +1,6 @@
 import itertools
 import json
+from typing import Optional
 
 import base58
 
@@ -24,13 +25,13 @@ class Account(object):
             self,
             provider: 'near_api.providers.JsonProvider',
             signer: 'near_api.signer.Signer',
-            account_id: str
+            account_id: Optional[str] = None
     ):
         self._provider = provider
         self._signer = signer
-        self._account_id = account_id
-        self._account: dict = provider.get_account(account_id)
-        self._access_key: dict = provider.get_access_key(account_id, self._signer.key_pair.encoded_public_key())
+        self._account_id = account_id or self._signer.account_id
+        self._account: dict = provider.get_account(self._account_id)
+        self._access_key: dict = provider.get_access_key(self._account_id, self._signer.key_pair.encoded_public_key())
         # print(account_id, self._account, self._access_key)
 
     def _sign_and_submit_tx(self, receiver_id: str, actions: list['transactions.Action']) -> dict:
@@ -79,7 +80,7 @@ class Account(object):
             self,
             contract_id: str,
             method_name: str,
-            args: bytes,
+            args: dict,
             gas: int = DEFAULT_ATTACHED_GAS,
             amount: int = 0
     ) -> dict:
@@ -94,7 +95,8 @@ class Account(object):
         actions = [
             transactions.create_create_account_action(),
             transactions.create_full_access_key_action(public_key),
-            transactions.create_transfer_action(initial_balance)]
+            transactions.create_transfer_action(initial_balance),
+        ]
         return self._sign_and_submit_tx(account_id, actions)
 
     def delete_account(self, beneficiary_id: str) -> dict:
@@ -139,7 +141,7 @@ class Account(object):
                   ] + ([transactions.create_full_access_key_action(public_key)] if public_key is not None else [])
         return self._sign_and_submit_tx(contract_id, actions)
 
-    def view_function(self, contract_id: str, method_name: str, args: bytes) -> dict:
+    def view_function(self, contract_id: str, method_name: str, args: Optional[dict] = None) -> dict:
         """NEAR view method."""
         result = self._provider.view_call(contract_id, method_name, json.dumps(args).encode('utf8'))
         if "error" in result:

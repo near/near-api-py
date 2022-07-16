@@ -2,7 +2,7 @@ import time
 import unittest
 
 import near_api
-from config import NODE_URL
+from config import NODE_URL, TEST_ACCOUNT, TEST_KEY_PAIR
 from utils import create_account
 
 
@@ -10,28 +10,26 @@ class JsonProviderTest(unittest.TestCase):
     def setUp(self):
         self.provider = near_api.providers.JsonProvider(NODE_URL)
         self.signer = near_api.signer.Signer(
-            "test.near",
-            near_api.signer.KeyPair(
-                "ed25519:2wyRcSwSuHtRVmkMCGjPwnzZmQLeXLzLLyED1NDMt4BjnKgQL6tF85yBx6Jr26D2dUNeC716RBoTxntVHsegogYw"
-            )
+            TEST_ACCOUNT,
+            near_api.signer.KeyPair(TEST_KEY_PAIR)
         )
-        self.master_account = near_api.account.Account(self.provider, self.signer, "test.near")
+        self.master_account = near_api.account.Account(self.provider, self.signer)
 
     def test_status(self):
         status = self.provider.get_status()
         self.assertIsNotNone(status["chain_id"])
 
     def test_get_account(self):
-        response = self.provider.get_account("test.near")
+        response = self.provider.get_account(TEST_ACCOUNT)
         self.assertEqual(response["code_hash"], "11111111111111111111111111111111")
 
-    def test_get_validators_orderes(self):
+    def test_get_validators_orders(self):
         status = self.provider.get_status()
         latest_block_hash = status['sync_info']['latest_block_hash']
         self.assertEqual(
             self.provider.get_validators_ordered(latest_block_hash)[0]
             ['account_id'],
-            'test.near'
+            TEST_ACCOUNT
         )
 
     def test_get_next_light_client_block(self):
