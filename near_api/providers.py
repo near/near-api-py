@@ -1,5 +1,6 @@
 import base64
 import json
+import time
 from typing import Union, Tuple, Any, Optional
 
 import requests
@@ -57,6 +58,8 @@ class JsonProvider(object):
             self,
             rpc_addr,
             proxies=None,
+            tx_timeout_retry_number: int = 12,
+            tx_timeout_retry_backoff_factor: float = 1.5,
             http_retry_number: int = 10,
             http_retry_backoff_factor: float = 1.5,
             session: Optional[requests.Session] = None,
@@ -84,10 +87,30 @@ class JsonProvider(object):
 
         self._session = session
 
+        self._tx_timeout_retry_number = tx_timeout_retry_number
+        self._tx_timeout_retry_backoff_factor = tx_timeout_retry_backoff_factor
+
     def rpc_addr(self) -> str:
         return self._rpc_addr
 
     def json_rpc(self, method: str, params: Union[dict, list, str], timeout: 'TimeoutType' = 2.0) -> dict:
+        attempt = 0
+        while True:
+            try:
+                return self._json_rpc_once(method, params, timeout)
+            except JsonProviderError as e:
+                if attempt >= self._tx_timeout_retry_number:
+                    raise
+                attempt += 1
+
+                if e.get_type() == "HANDLER_ERROR" and e.get_cause() == "TIMEOUT_ERROR":
+                    # TODO: log warning
+                else:
+                    raise
+
+                time.sleep(self._tx_timeout_retry_backoff_factor ** attempt)
+
+    def _json_rpc_once(self, method: str, params: Union[dict, list, str], timeout: 'TimeoutType' = 2.0) -> dict:
         j = {
             'method': method,
             'params': params,
