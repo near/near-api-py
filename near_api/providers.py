@@ -3,6 +3,7 @@ import json
 from typing import Union, Tuple, Any
 
 import requests
+import urllib3.util
 
 TimeoutType = Union[float, Tuple[float, float]]
 """ The type used as "timeout" argument when sending requests. Quantities are in seconds.
@@ -22,12 +23,36 @@ class JsonProviderError(Exception):
 
 
 class JsonProvider(object):
-    def __init__(self, rpc_addr, proxies=None):
+    def __init__(
+            self,
+            rpc_addr,
+            proxies=None,
+            http_retry_number: int = 10,
+            http_retry_backoff_factor: float = 1.5,
+            session: Optional[requests.Session] = None,
+    ) -> None:
         if isinstance(rpc_addr, tuple):
             self._rpc_addr = "http://%s:%s" % rpc_addr
         else:
             self._rpc_addr = rpc_addr
         self.proxies = proxies
+
+        if session is None:
+            # Loosely based on https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
+            adapter = requests.adapters.HTTPAdapter(
+                max_retries=urllib3.util.Retry(
+                    total=http_retry_number,
+                    backoff_factor=http_retry_backoff_factor,
+                    status_forcelist=[502, 503],
+                    allowed_methods=["GET", "POST"],
+                ),
+            )
+
+            session = requests.Session()
+            session.mount("https://", adapter)
+            session.mount("http://", adapter)
+
+        self._session = session
 
     def rpc_addr(self) -> str:
         return self._rpc_addr
@@ -39,7 +64,7 @@ class JsonProvider(object):
             'id': "dontcare",
             'jsonrpc': "2.0"
         }
-        r = requests.post(self.rpc_addr(), json=j, timeout=timeout, proxies=self.proxies)
+        r = self._session.post(self.rpc_addr(), json=j, timeout=timeout, proxies=self.proxies)
         r.raise_for_status()
         content = json.loads(r.content)
         if "error" in content:
@@ -56,7 +81,7 @@ class JsonProvider(object):
                              timeout=timeout)
 
     def get_status(self, timeout: 'TimeoutType' = 2.0) -> dict:
-        r = requests.get("%s/status" % self.rpc_addr(), timeout=timeout)
+        r = self._session.get("%s/status" % self.rpc_addr(), timeout=timeout)
         r.raise_for_status()
         return json.loads(r.content)
 
