@@ -56,7 +56,7 @@ class Account(object):
                     log.warning("Retrying transaction with new nonce: %s", e)
                     self.fetch_state()
                 elif e.is_expired_tx_error():
-                    log.warning("Retrying transaction due to expired block hash", e)
+                    log.warning("Retrying transaction due to expired block hash: %s", e)
                 else:
                     raise
 
