@@ -1,10 +1,13 @@
 import base64
 import json
+import logging
 import time
 from typing import Union, Tuple, Any, Optional
 
 import requests
 import urllib3.util
+
+log = logging.getLogger(__name__)
 
 TimeoutType = Union[float, Tuple[float, float]]
 """ The type used as "timeout" argument when sending requests. Quantities are in seconds.
@@ -104,7 +107,7 @@ class JsonProvider(object):
                 attempt += 1
 
                 if e.get_type() == "HANDLER_ERROR" and e.get_cause() == "TIMEOUT_ERROR":
-                    # TODO: log warning
+                    log.warning("Retrying request to %s as it has timed out: %s", method, e)
                 else:
                     raise
 

@@ -1,5 +1,6 @@
 import itertools
 import json
+import logging
 import time
 from typing import Optional
 
@@ -7,6 +8,8 @@ import base58
 
 import near_api
 from near_api import transactions, providers
+
+log = logging.getLogger(__name__)
 
 # Amount of gas attached by default 1e14.
 DEFAULT_ATTACHED_GAS = 100_000_000_000_000
@@ -35,7 +38,6 @@ class Account(object):
         self._account_id = account_id or self._signer.account_id
         self._account: dict = provider.get_account(self._account_id)
         self._access_key: dict = provider.get_access_key(self._account_id, self._signer.key_pair.encoded_public_key())
-        # print(account_id, self._account, self._access_key)
 
         self._tx_nonce_retry_number = tx_nonce_retry_number
         self._tx_nonce_retry_backoff_factor = tx_nonce_retry_backoff_factor
@@ -51,10 +53,10 @@ class Account(object):
                 attempt += 1
 
                 if e.is_invalid_nonce_tx_error():
-                    # TODO: log warning
+                    log.warning("Retrying transaction with new nonce: %s", e)
                     self.fetch_state()
                 elif e.is_expired_tx_error():
-                    # TODO: log warning
+                    log.warning("Retrying transaction due to expired block hash", e)
                 else:
                     raise
 
@@ -69,7 +71,7 @@ class Account(object):
         result: dict = self._provider.send_tx_and_wait(serialized_tx, 10)
         for outcome in itertools.chain([result['transaction_outcome']], result['receipts_outcome']):
             for log in outcome['outcome']['logs']:
-                print("Log:", log)
+                log.info("Log %s: %s", receiver_id, log)
         if 'Failure' in result['status']:
             raise TransactionError(result['status']['Failure'])
         return result
