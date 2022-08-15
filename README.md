@@ -45,6 +45,20 @@ out = account.function_call(contract_id, "counter_set", args)
 print(out)
 ```
 
+## Logging control
+
+```python
+import logging
+
+# To hide NEAR warnings and info messages
+logging.getLogger("near_api").setLevel(logging.ERROR)
+
+# To log all information about RPC requests
+logging.getLogger("urllib3.connectionpool").setLevel(logging.DEBUG).addHandler(handler)
+
+# To log only information about RPC retries
+logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING).addHandler(handler)
+```
 
 # Contribution
 
