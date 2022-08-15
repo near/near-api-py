@@ -1,6 +1,6 @@
 import base64
 import json
-from typing import Union, Tuple, Any
+from typing import Union, Tuple, Any, Optional
 
 import requests
 import urllib3.util
@@ -19,7 +19,37 @@ class FinalityTypes:
 
 
 class JsonProviderError(Exception):
-    pass
+    def get_type(self) -> Optional[str]:
+        try:
+            return self.args[0]["name"]
+        except (IndexError, KeyError):
+            return None
+
+    def get_cause(self) -> Optional[str]:
+        try:
+            return self.args[0]["cause"]["name"]
+        except (IndexError, KeyError):
+            return None
+
+    def is_invalid_nonce_tx_error(self) -> bool:
+        try:
+            return (
+                self.get_type() == "HANDLER_ERROR"
+                and self.get_cause() == "INVALID_TRANSACTION"
+                and "InvalidNonce" in self.args[0]["data"]["TxExecutionError"]["InvalidTxError"]
+            )
+        except (IndexError, KeyError):
+            return False
+
+    def is_expired_tx_error(self) -> bool:
+        try:
+            return (
+                self.get_type() == "HANDLER_ERROR"
+                and self.get_cause() == "INVALID_TRANSACTION"
+                and self.args[0]["data"]["TxExecutionError"]["InvalidTxError"] == "Expired"
+            )
+        except (IndexError, KeyError):
+            return False
 
 
 class JsonProvider(object):
