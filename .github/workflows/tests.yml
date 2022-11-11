@@ -1,0 +1,17 @@
+name: CI
+on: push
+jobs:
+  tests:
+    name: NAPy Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - name: Install requirements
+        run: pip install tox && pip install .
+      - name: Run tests
+        run: python -m unittest discover test
