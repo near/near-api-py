@@ -1,4 +1,5 @@
 import hashlib
+from typing import List
 
 import near_api
 from near_api.serializer import BinarySerializer
@@ -256,7 +257,7 @@ tx_schema = dict(
 def sign_and_serialize_transaction(
         receiver_id: str,
         nonce: int,
-        actions: list[Action],
+        actions: List[Action],
         block_hash: bytes,
         signer: 'near_api.signer.Signer'
 ) -> bytes:

@@ -1,6 +1,6 @@
 import itertools
 import json
-from typing import Optional
+from typing import Optional, List
 
 import base58
 
@@ -34,7 +34,7 @@ class Account(object):
         self._access_key: dict = provider.get_access_key(self._account_id, self._signer.key_pair.encoded_public_key())
         # print(account_id, self._account, self._access_key)
 
-    def _sign_and_submit_tx(self, receiver_id: str, actions: list['transactions.Action']) -> dict:
+    def _sign_and_submit_tx(self, receiver_id: str, actions: List['transactions.Action']) -> dict:
         self._access_key['nonce'] += 1
         block_hash = self._provider.get_status()['sync_info']['latest_block_hash']
         block_hash = base58.b58decode(block_hash.encode('utf8'))
