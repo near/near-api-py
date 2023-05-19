@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 META_DATA = dict(
-    name="near-api-py",
-    version="0.1.0",
+    name="near-api",
+    version="0.2.1",
     license="MIT",
 
     author="NEAR Inc",
@@ -11,7 +11,7 @@ META_DATA = dict(
 
     packages=find_packages(),
 
-    install_requires=["requests", "base58", "ed25519"]
+    install_requires=["requests", "base58", "pynacl"]
 )
 
 if __name__ == "__main__":

@@ -2,41 +2,40 @@ import json
 from typing import Union
 
 import base58
-import ed25519
+from nacl import signing, encoding
 
 
 class KeyPair(object):
 
-    def __init__(self, secret_key: Union[str, bytes] = None):
+    def __init__(self, secret_key: Union[str, bytes, None] = None):
         """
         If no secret_key, a new one is created.
         secret_key must be a base58-encoded string or
         the byte object returned as "secret_key" property of a KeyPair object."""
         if not secret_key:
-            self._secret_key, self._public_key = ed25519.keys.create_keypair()
-            raise Exception("No secret_key")
+            self._secret_key = signing.SigningKey.generate()
         if isinstance(secret_key, bytes):
-            self._secret_key = ed25519.keys.SigningKey(secret_key)
+            self._secret_key = signing.SigningKey(secret_key, encoder=encoding.RawEncoder)
         elif isinstance(secret_key, str):
             secret_key = secret_key.split(':')[-1]
-            self._secret_key = ed25519.keys.SigningKey(base58.b58decode(secret_key))
+            self._secret_key = signing.SigningKey(base58.b58decode(secret_key)[:32], encoder=encoding.RawEncoder)
         else:
             raise Exception("Unrecognised")
-        self._public_key = self._secret_key.get_verifying_key()
+        self._public_key = self._secret_key.verify_key
 
     @property
     def public_key(self) -> bytes:
-        return self._public_key.to_bytes()
+        return self._public_key.encode()
 
     def encoded_public_key(self) -> str:
         return base58.b58encode(self.public_key).decode('utf-8')
 
-    def sign(self, message: bytes) -> str:
-        return self._secret_key.sign(message)
+    def sign(self, message: bytes) -> bytes:
+        return self._secret_key.sign(message).signature
 
     @property
     def secret_key(self) -> bytes:
-        return self._secret_key.to_bytes()
+        return self._secret_key.encode()
 
     @property
     def encoded_secret_key(self) -> str:
@@ -68,7 +67,7 @@ class Signer(object):
     def public_key(self) -> bytes:
         return self._key_pair.public_key
 
-    def sign(self, message: bytes) -> str:
+    def sign(self, message: bytes) -> bytes:
         return self._key_pair.sign(message)
 
     @classmethod
