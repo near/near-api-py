@@ -7,7 +7,7 @@ A Python library for development of applications that are using NEAR platform.
 # Installation
 
 ```bash
-pip install near-api-py
+pip install near-api
 ```
 
 # Usage example
