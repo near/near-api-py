@@ -4,6 +4,19 @@
 
 A Python library for development of applications that are using NEAR platform.
 
+> **Warning**:
+>
+> `near-api-py` is out of date. Use `py-near`:
+>
+> - supports asynchronous requests
+> - support `nearcore==0.17` and delegated transactions
+> - uses `py-near-primitives` wrappers over rust
+>
+> **Repository**: https://github.com/pvolnov/py-near
+>
+> **Documentation:** https://py-near.readthedocs.io/en/latest/quickstart.html
+
+
 # Installation
 
 ```bash
